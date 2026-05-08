@@ -10,7 +10,7 @@ class Encoder:
     mean = None
     log_var = None
 
-    def __init__(self):
+    def __init__(self, sampling: layers.Layer):
         x = layers.Conv2D(64,
                           3,
                           activation = 'relu',
@@ -30,7 +30,7 @@ class Encoder:
         self.mean = layers.Dense(self.latent_dim, name = "mean")(x)
         self.log_var = layers.Dense(self.latent_dim, name = "log_var")(x)
 
-        self.z = Sampling()([self.mean, self.log_var])
+        self.z = sampling([self.mean, self.log_var])
 
         self.encoder = keras.Model(self.encoder_inputs, [self.mean, self.log_var, self.z], name = "encoder")
 
