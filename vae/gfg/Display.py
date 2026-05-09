@@ -1,6 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+labels = {0: "T-shirt / top",
+          1: "Trouser",
+          2: "Pullover",
+          3: "Dress",
+          4: "Coat",
+          5: "Sandal",
+          6: "Shirt",
+          7: "Sneaker",
+          8: "Bag",
+          9: "Ankle boot"}
+
 class Display:
     def plot_latent_space(self, vae, n = 10, figsize = 5):
         img_size = 28
@@ -34,3 +45,14 @@ class Display:
         plt.imshow(figure, cmap = "Greys_r")
         plt.savefig('my_plot.png')
         plt.show()
+
+    def plot_label_clusters(self, encoder, decoder, data, test_lab):
+        z_mean, _, _ = encoder.predict(data)
+        plt.figure(figsize = (12, 10))
+        sc = plt.scatter(z_mean[:, 0], z_mean[:, 1], c = test_lab)
+        cbar = plt.colorbar(sc, ticks=range(10))
+        cbar.ax.set_yticklabels([labels.get(i) for i in range(10)])
+        plt.xlabel("z[0]")
+        plt.ylabel("z[1]")
+        plt.savefig('mnist_with_labels.png')
+
