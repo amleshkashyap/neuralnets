@@ -36,7 +36,7 @@ class TrainAE:
                 # get a batch of data and move it to the selected device
                 data = data.to(self.device)
 
-                encoded, decoded = self.model(data)
+                encoded, decoded = self.model.forward(data)
 
                 # compute loss and perform backpropagation
                 loss = self.criterion(decoded, data)

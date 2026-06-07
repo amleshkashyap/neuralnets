@@ -29,7 +29,7 @@ class TrainVAE:
             for batch_idx, data in enumerate(train_loader):
                 data = data.to(self.device)
 
-                encoded, decoded, mean, log_var = self.model(data)
+                encoded, decoded, mean, log_var = self.model.forward(data)
 
                 KLD = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp())
                 loss = self.criterion(decoded, data) + 3 * KLD
