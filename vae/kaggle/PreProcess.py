@@ -11,6 +11,7 @@ class PreProcess:
 
     @staticmethod
     def convertToImg(array, filename):
+        # input image is given as 784 pixel values (grayscale) - convert to 28 x 28 array for opencv to create the jpeg image
         img = array.reshape((28, 28))
         cv.imwrite(filename, img)
 

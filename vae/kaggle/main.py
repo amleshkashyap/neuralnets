@@ -31,6 +31,7 @@ if __name__ == '__main__':
 
     # prepare test data
     imgFiles = os.listdir('./train')
+    # choose any 256 images to move from ./train to ./test directory
     testSample = np.random.choice(imgFiles, size = 256, replace = False)
 
     for file in tqdm(testSample):
@@ -38,13 +39,24 @@ if __name__ == '__main__':
         new = os.path.join('./test', file)
         shutil.move(curr, new)
 
+    # label.csv has 42000 data points, the full set
     labels = pd.read_csv('./label.csv')
     testSet = labels[labels['file'].isin(testSample)]
+    # after this, label.csv has 41744 data points, rows for the 256 images in ./test directory are removed
     labels.drop(testSet.index, axis = 0).to_csv('./label.csv', index = False)
 
+    # transform the training data randomly to have better learning, eg, model should be able to identify even if the numbers appear
+    # slightly rotated or distorted in the test/validation set
     trainTransform = v2.Compose([
-        v2.RandomAffine(degrees = 5, translate = (0.05, 0.05), scale = (0.98, 1.02)),
-        v2.RandomPerspective(distortion_scale = 0.5, p = 0.5),
+        v2.RandomAffine(
+            degrees = 5,                # may apply a rotation of -5 to 5 degrees
+            translate = (0.05, 0.05),   # may translate by 5% both horizontally and vertically
+            scale = (0.98, 1.02)        # may scale between 98% and 102%
+        ),
+        v2.RandomPerspective(
+            distortion_scale = 0.5,     # if perspective transforming, then degree of distortion
+            p = 0.5
+        ),
         transforms.ToTensor()
     ])
 
@@ -52,8 +64,10 @@ if __name__ == '__main__':
     trainSize = int(len(trainingData) * 0.8)
     testSize = len(trainingData) - trainSize
 
+    # split the data as train-test with a ratio of 80:20, randomly
     trainDataset, testDataset = random_split(trainingData, (trainSize, testSize))
 
+    # get an iterable on the train and test datasets with a batch size of 32
     trainDataloader = DataLoader(trainDataset, batch_size = 32, shuffle = True)
     testDataloader = DataLoader(testDataset, batch_size = 32, shuffle = True)
 
@@ -67,6 +81,7 @@ if __name__ == '__main__':
 
     Display.displayModelProperties(model)
 
+    # mean squared error where the sum of all element-wise errors is taken
     lossFunction = nn.MSELoss(reduction = 'sum')
 
     images, labels = next(iter(trainDataloader))
@@ -74,7 +89,10 @@ if __name__ == '__main__':
     Display.displayLabels(images, labels)
     print(labels[0].shape)
 
+    # AdamW is a variant of Adam that decouples weight decay from gradient updates, apply L2 regularization directly on weights
     optimizer = torch.optim.AdamW(model.parameters(), lr = 0.001)
+
+    # dynamically reduces the learning rate hyperparameter if the evaluation metric (MSELoss in this case) stops improving
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode = 'min', factor = 0.1)
 
     results = Train.trainLoop(

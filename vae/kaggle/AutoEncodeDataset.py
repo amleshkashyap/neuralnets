@@ -26,6 +26,8 @@ class AutoEncodeDataset(Dataset):
             image = self.transform(image)
 
         label = transforms.ToPILImage()(image)
+        # NOTE: labels are resized to 27 x 27, images are at 28 x 28 - this is to address spatial resolution mismatches
+        #   during conditional generation or reconstruction loss calculation (something like a backup)
         label = self.resize(label)
 
         return image, label

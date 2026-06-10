@@ -12,13 +12,14 @@ class VariationalAutoEncoder(nn.Module):
         self.decoder = Decode(channels, embeddings, kernel)
 
     def forward(self, x):
+        # get the mean and variance for the latent distribution inferred by the encoder
         mu, sigma = self.encoder(x)
 
-        # NOTE:
+        # NOTE: get the standard deviation from variance
         std = torch.exp(0.5 * sigma)
-        # NOTE:
+        # NOTE: get the auxiliary random variable required to compute the latent vector
         epsilon = torch.randn_like(std)
-        # NOTE:
+        # NOTE: standard formula for getting z during VAE forward pass
         z = epsilon.mul(std).add_(mu)
 
         return self.decoder(z), mu, sigma
