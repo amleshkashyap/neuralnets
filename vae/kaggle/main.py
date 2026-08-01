@@ -103,7 +103,7 @@ if __name__ == '__main__':
         optimizer = optimizer,
         lrSchedule = scheduler,
         device = device,
-        epochs = 100,
+        epochs = 10,
     )
 
     Display.displayLoss(results)

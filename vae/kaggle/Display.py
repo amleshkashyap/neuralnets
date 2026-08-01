@@ -7,9 +7,9 @@ from torchview import draw_graph
 class Display:
     @staticmethod
     def displayModelProperties(model):
-        print(summary(model.cpu(), input_size=(1, 28, 28), batch_size=-1))
+        print(summary(model.cuda(), input_size=(1, 28, 28), batch_size=-1))
 
-        modelGraph = draw_graph(model.cpu(), input_size=(1, 1, 28, 28), expand_nested=True)
+        modelGraph = draw_graph(model.cuda(), input_size=(1, 1, 28, 28), expand_nested=True)
         modelGraph.visual_graph
 
     @staticmethod
