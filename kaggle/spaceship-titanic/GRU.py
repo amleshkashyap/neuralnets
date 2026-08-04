@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-class RecurrentNN(nn.Module):
+class GRU(nn.Module):
     def __init__(self, inputSize, hiddenSize, outputSize):
         super().__init__()
         self.hiddenSize = hiddenSize

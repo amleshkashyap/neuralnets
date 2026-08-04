@@ -5,11 +5,12 @@ import numpy as np
 import os
 
 class Preprocess:
-    def __init__(self, relativePath):
+    def __init__(self, relativePath, scaler):
         self.filePath = os.getcwd()
         for path in relativePath:
             self.filePath = os.path.join(self.filePath, path)
 
+        self.scaler = scaler
         self.df = None
         self.dataloader = None
         self.labels = None
@@ -23,9 +24,11 @@ class Preprocess:
         self.convertToNumber(convertToNumeric)
         fillMissing = convertToNumeric + ['PassengerGroups', 'PassengerNums', 'Age', 'RoomService', 'FoodCourt', 'ShoppingMall', 'Spa', 'VRDeck', 'CabinNumber']
         self.fillMissingValues(fillMissing)
-        print(self.df.head())
 
+        if "Transported" not in self.df.columns:
+            self.df["Transported"] = 0
         yFeatures = self.df[["Transported"]].values
+        print("Value Counts: ", self.df["Transported"].value_counts())
         self.labels = yFeatures
         self.df.drop(
             "Transported",
@@ -34,8 +37,12 @@ class Preprocess:
         )
 
         print(self.df.columns)
-        xFeatures = self.df.values.astype(np.float32)  # Shape: (8693 x 15)
-        print(xFeatures)
+        if hasattr(self.scaler, "mean_") and hasattr(self.scaler, "scale_"):
+            # this must be some kind of test data, use the existing mean/stddev
+            print("Handling Test Dataset")
+            xFeatures = self.scaler.transform(self.df.values.astype(np.float32))  # Shape: (8693 x 15)
+        else:
+            xFeatures = self.scaler.fit_transform(self.df.values.astype(np.float32))  # Shape: (8693 x 15)
         xTensor = torch.tensor(
             xFeatures,
             dtype = torch.float32
@@ -62,6 +69,9 @@ class Preprocess:
 
     def getLabels(self):
         return self.labels
+
+    def getScaler(self):
+        return self.scaler
 
     def splitPassengerIds(self):
         passengerIds = self.df['PassengerId'].tolist()

@@ -13,14 +13,17 @@ class RecurrentNN(nn.Module):
         self.fc = nn.Linear(hiddenSize, outputSize)
 
     def forward(self, x):
+        # initialize the hidden layer weights
         h0 = torch.zeros(
             1,
             x.size(0),
             self.hiddenSize
         )
 
+        # get the output for hidden layer - h1 = Wx + Wh0 + b
         output, _ = self.rnn(x, h0)
         output = output[:, -1, :]
+        # compute y = Wh + b
         output = self.fc(output)
 
         return output

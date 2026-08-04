@@ -1,3 +1,5 @@
+import csv
+
 import torch
 import numpy as np
 
@@ -10,11 +12,9 @@ class Inference:
         # Deactivate dropout or batch normalization layers
         self.model.eval()
 
-        # Assume 'test_df' is your test DataFrame with 15 feature columns
-        # Assume 'test_labels' is your NumPy array or Series of true labels
-        xFeatures = df.values.astype(np.float32)  # Shape: (num_test_samples, 15)
+        # convert the test dataset to numpy array
+        xFeatures = df.to_numpy(dtype = np.float32)  # Shape: (testSampleSize, 15)
 
-        # Convert to 3D Tensor: (num_test_samples, 1, 15)
         xTensor = torch.tensor(
             xFeatures,
             dtype = torch.float32
@@ -25,25 +25,29 @@ class Inference:
             dtype = torch.float32
         ).reshape(-1, 1)
 
-        # 2. Generate Predictions without Tracking Gradients
+        # don't track gradients
         with torch.no_grad():
-            # Forward pass through the model
+            # Forward pass through the model to make predictions (logits)
             rawLogits = self.model(xTensor)
 
-            # Calculate validation loss using the training criterion
+            # validation loss using the selected loss function
             valLoss = self.criterion(
                 rawLogits,
                 yTensor
             ).item()
 
-            # Convert raw outputs (logits) into probabilities using Sigmoid
+            # get probabilities
             probabilities = torch.sigmoid(rawLogits)
 
-            # Convert probabilities to binary classes (0 or 1) using 0.5 threshold
+            print(
+                "Raw Probabilities (First 10):", probabilities[:10].squeeze().tolist()
+            )
+            print("True Labels (First 10):       ", yTensor[:10].squeeze().tolist())
+
+            # use threshold of 0.5 to assign binary labels
             predictions = (probabilities >= 0.5).float()
 
-        # 3. Calculate and Print Performance Metrics
-        # Convert Tensors back to numpy arrays for calculation if needed
+        # convert back to numpy arrays
         yTrue = yTensor.numpy()
         yPred = predictions.numpy()
 
@@ -55,3 +59,10 @@ class Inference:
         print("--- Validation Results ---")
         print(f"Validation Loss: {valLoss:.4f}")
         print(f"Accuracy:        {accuracy:.2f}%")
+
+        np.savetxt(
+            "results.csv",
+            yPred.astype(bool),
+            delimiter = ',',
+            fmt = '%s'
+        )

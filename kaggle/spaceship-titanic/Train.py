@@ -10,15 +10,18 @@ class Train:
         for epoch in range(epochs):
             epochLoss = 0.0
             for batchX, batchY in self.dataloader:
-                # reset the gradients
-                self.optimizer.zero_grad()
-
-                # run the forward method
+                # run the forward method to do the prediction
                 y = self.model(batchX)
 
                 # compute the loss values
                 loss = self.criterion(y, batchY)
+
+                # Start BackPropagation
+                # reset the gradients
+                self.optimizer.zero_grad()
+                # compute the gradients
                 loss.backward()
+                # update the weights using the above gradients and optimizer
                 self.optimizer.step()
 
                 epochLoss += loss.item() * batchX.size(0)
