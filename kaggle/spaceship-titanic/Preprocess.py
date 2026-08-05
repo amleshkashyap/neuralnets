@@ -3,6 +3,8 @@ from torch.utils.data import DataLoader, TensorDataset
 import pandas as pd
 import numpy as np
 import os
+from sklearn.model_selection import train_test_split
+from Parameters import *
 
 class Preprocess:
     def __init__(self, relativePath, scaler):
@@ -12,10 +14,14 @@ class Preprocess:
 
         self.scaler = scaler
         self.df = None
-        self.dataloader = None
         self.labels = None
+        self.xTrain = None
+        self.yTrain = None
+        self.xValidate = None
+        self.yValidate = None
+        self.dataloader = None
 
-    def loadData(self):
+    def loadData(self, mode = 'train'):
         self.df = pd.read_csv(self.filePath)
         self.df = self.df.drop("Name", axis = 1)
         self.splitPassengerIds()
@@ -25,39 +31,56 @@ class Preprocess:
         fillMissing = convertToNumeric + ['PassengerGroups', 'PassengerNums', 'Age', 'RoomService', 'FoodCourt', 'ShoppingMall', 'Spa', 'VRDeck', 'CabinNumber']
         self.fillMissingValues(fillMissing)
 
-        if "Transported" not in self.df.columns:
-            self.df["Transported"] = 0
-        yFeatures = self.df[["Transported"]].values
-        print("Value Counts: ", self.df["Transported"].value_counts())
-        self.labels = yFeatures
-        self.df.drop(
-            "Transported",
-            axis = 1,
-            inplace = True
-        )
-
         print(self.df.columns)
-        if hasattr(self.scaler, "mean_") and hasattr(self.scaler, "scale_"):
-            # this must be some kind of test data, use the existing mean/stddev
-            print("Handling Test Dataset")
-            xFeatures = self.scaler.transform(self.df.values.astype(np.float32))  # Shape: (8693 x 15)
+        if mode == 'test':
+            self.df["Transported"] = 0
+            self.labels = self.df["Transported"]
+            self.df = self.df.drop("Transported", axis = 1)
+            self.xTrain = torch.tensor(
+                self.scaler.transform(self.df.values.astype(np.float32)),
+                dtype = torch.float32
+            ).unsqueeze(1)  # Shape: (8693 x 1 x 15)
+
+            self.yTrain = torch.tensor(
+                self.labels.values,
+                dtype = torch.float32
+            )   # Shape: (8693, 1)
         else:
-            xFeatures = self.scaler.fit_transform(self.df.values.astype(np.float32))  # Shape: (8693 x 15)
-        xTensor = torch.tensor(
-            xFeatures,
-            dtype = torch.float32
-        ).unsqueeze(1)  # Shape: (8693 x 1 x 15)
+            self.labels = self.df["Transported"]
+            self.df = self.df.drop("Transported", axis = 1)
+            trainDf, valDf, trainLabel, valLabel = train_test_split(
+                self.df,
+                self.labels,
+                test_size = TRAIN_TEST_SPLIT,
+                random_state = 42
+            )
+            self.xTrain = torch.tensor(
+                self.scaler.fit_transform(trainDf.values.astype(np.float32)),
+                dtype = torch.float32
+            ).unsqueeze(1)
 
-        yTensor = torch.tensor(
-            yFeatures,
-            dtype = torch.float32
-        )  # Shape: (8693, 1)
+            self.xValidate = torch.tensor(
+                self.scaler.transform(valDf.values.astype(np.float32)),
+                dtype = torch.float32
+            ).unsqueeze(1)
 
+            self.yTrain = torch.tensor(
+                trainLabel.values,
+                dtype = torch.float32
+            ).unsqueeze(1)
+            print(self.xTrain.shape, self.yTrain.shape)
+
+            self.yValidate = torch.tensor(
+                valLabel.values,
+                dtype = torch.float32
+            ).unsqueeze(1)
+
+        self.labels = self.labels.values
         # Create DataLoader for mini-batch training
-        dataset = TensorDataset(xTensor, yTensor)
+        dataset = TensorDataset(self.xTrain, self.yTrain)
         self.dataloader = DataLoader(
             dataset,
-            batch_size = 16,
+            batch_size = BATCH_SIZE,
             shuffle = True
         )
 
@@ -66,6 +89,18 @@ class Preprocess:
 
     def getDf(self):
         return self.df
+
+    def getXTrain(self):
+        return self.xTrain
+
+    def getXValidate(self):
+        return self.xValidate
+
+    def getYTrain(self):
+        return self.yTrain
+
+    def getYValidate(self):
+        return self.yValidate
 
     def getLabels(self):
         return self.labels

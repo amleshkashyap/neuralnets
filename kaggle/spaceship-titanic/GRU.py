@@ -2,24 +2,26 @@ import torch
 import torch.nn as nn
 
 class GRU(nn.Module):
-    def __init__(self, inputSize, hiddenSize, outputSize):
+    def __init__(self, inputSize, hiddenSize, outputSize, hiddenLayers):
         super().__init__()
         self.hiddenSize = hiddenSize
-        self.rnn = nn.GRU(
+        self.hiddenLayers = hiddenLayers
+        self.gru = nn.GRU(
             input_size = inputSize,
-            hidden_size = hiddenSize,
+            hidden_size = self.hiddenSize,
             batch_first = True,
+            num_layers = self.hiddenLayers,
         )
-        self.fc = nn.Linear(hiddenSize, outputSize)
+        self.fc = nn.Linear(self.hiddenSize, outputSize)
 
     def forward(self, x):
         h0 = torch.zeros(
-            1,
+            self.hiddenLayers,
             x.size(0),
             self.hiddenSize
         )
 
-        output, _ = self.rnn(x, h0)
+        output, _ = self.gru(x, h0)
         output = output[:, -1, :]
         output = self.fc(output)
 

@@ -1,3 +1,4 @@
+from Parameters import *
 
 class Train:
     def __init__(self, model, dataloader, criterion, optimizer):
@@ -6,7 +7,7 @@ class Train:
         self.criterion = criterion
         self.optimizer = optimizer
 
-    def train(self, epochs = 50):
+    def train(self, epochs = EPOCHS):
         for epoch in range(epochs):
             epochLoss = 0.0
             for batchX, batchY in self.dataloader:

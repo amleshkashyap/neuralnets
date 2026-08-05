@@ -8,22 +8,10 @@ class Inference:
         self.model = model
         self.criterion = criterion
 
-    def predict(self, df, testLabels):
+    def predict(self, xTensor, yTensor):
         # Deactivate dropout or batch normalization layers
         self.model.eval()
-
-        # convert the test dataset to numpy array
-        xFeatures = df.to_numpy(dtype = np.float32)  # Shape: (testSampleSize, 15)
-
-        xTensor = torch.tensor(
-            xFeatures,
-            dtype = torch.float32
-        ).unsqueeze(1)
-
-        yTensor = torch.tensor(
-            testLabels,
-            dtype = torch.float32
-        ).reshape(-1, 1)
+        yTensor = yTensor.reshape(-1, 1)
 
         # don't track gradients
         with torch.no_grad():
