@@ -15,6 +15,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import numpy as np
 from Parameters import *
+from CompareTrainTest import *
 
 from Inference import Inference
 
@@ -25,10 +26,16 @@ if __name__ == "__main__":
     # scaler to normalize the dataset
     scaler = StandardScaler()
 
+    compareTrainTest = CompareTrainTest(trainFilePath, testFilePath, scaler)
+    # compareTrainTest.loadData()
+    # compareTrainTest.compareTrainTest()
+    # os._exit(0)
+
     # preprocess the training dataset and the DataLoader
-    preprocess = Preprocess(trainFilePath, scaler)
+    preprocess = Preprocess(trainFilePath, scaler, {})
     preprocess.loadData()
     dataloader = preprocess.getData()
+    categoryData = preprocess.getCategoryData()
 
     trainDf = preprocess.getDf()
     trainLabels = preprocess.getLabels().flatten().tolist()
@@ -66,7 +73,7 @@ if __name__ == "__main__":
     # os._exit(0)
 
     # input features
-    INPUT_SIZE = 15
+    INPUT_SIZE = 19
 
     # binary classification has a single valued output
     OUTPUT_SIZE = 1
@@ -121,6 +128,6 @@ if __name__ == "__main__":
     inference.predict(preprocess.getXValidate(), preprocess.getYValidate())
 
 
-    preprocessTest = Preprocess(testFilePath, preprocess.getScaler())
+    preprocessTest = Preprocess(testFilePath, preprocess.getScaler(), categoryData)
     preprocessTest.loadData('test')
     inference.predict(preprocessTest.getXTrain(), preprocessTest.getYTrain())

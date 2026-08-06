@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from Parameters import *
 
 class Preprocess:
-    def __init__(self, relativePath, scaler):
+    def __init__(self, relativePath, scaler, categoryData):
         self.filePath = os.getcwd()
         for path in relativePath:
             self.filePath = os.path.join(self.filePath, path)
@@ -20,20 +20,48 @@ class Preprocess:
         self.xValidate = None
         self.yValidate = None
         self.dataloader = None
+        self.categoryData = categoryData
 
     def loadData(self, mode = 'train'):
         self.df = pd.read_csv(self.filePath)
-        self.df = self.df.drop("Name", axis = 1)
-        self.splitPassengerIds()
-        self.splitCabin()
-        convertToNumeric = ['HomePlanet', 'CryoSleep', 'CabinDeck', 'CabinSide', 'Destination', 'VIP']
-        self.convertToNumber(convertToNumeric)
-        fillMissing = convertToNumeric + ['PassengerGroups', 'PassengerNums', 'Age', 'RoomService', 'FoodCourt', 'ShoppingMall', 'Spa', 'VRDeck', 'CabinNumber']
-        self.fillMissingValues(fillMissing)
-
+        self.df = Preprocess.splitPassengerIds(self.df)
+        self.df = Preprocess.splitCabin(self.df)
+        self.df = Preprocess.splitNameAndAge(self.df)
+        convertToNumeric = [
+            'HomePlanet',
+            'CryoSleep',
+            'CabinDeck',
+            'CabinSide',
+            'Destination',
+            'VIP',
+            'Name',
+            'Surname',
+            'Gender'
+        ]
+        self.df = Preprocess.convertToNumber(self.df, convertToNumeric, self.categoryData)
+        otherColumns = [
+            'PassengerGroups',
+            'PassengerNums',
+            'Age',
+            'RoomService',
+            'FoodCourt',
+            'ShoppingMall',
+            'Spa',
+            'VRDeck',
+            'CabinNumber',
+            'AgeGroups'
+        ]
+        fillMissing = convertToNumeric + otherColumns
+        self.df = Preprocess.fillMissingValues(self.df, fillMissing)
+        # self.df.drop(
+        #     'Gender',
+        #     axis = 1,
+        #     inplace = True
+        # )
         print(self.df.columns)
         if mode == 'test':
             self.df["Transported"] = 0
+            self.df.to_csv('testDataConverted.csv', index=False)
             self.labels = self.df["Transported"]
             self.df = self.df.drop("Transported", axis = 1)
             self.xTrain = torch.tensor(
@@ -47,6 +75,7 @@ class Preprocess:
             )   # Shape: (8693, 1)
         else:
             self.labels = self.df["Transported"]
+            self.df.to_csv('trainDataConverted.csv', index=False)
             self.df = self.df.drop("Transported", axis = 1)
             trainDf, valDf, trainLabel, valLabel = train_test_split(
                 self.df,
@@ -108,8 +137,12 @@ class Preprocess:
     def getScaler(self):
         return self.scaler
 
-    def splitPassengerIds(self):
-        passengerIds = self.df['PassengerId'].tolist()
+    def getCategoryData(self):
+        return self.categoryData
+
+    @staticmethod
+    def splitPassengerIds(df):
+        passengerIds = df['PassengerId'].tolist()
         passengerGroup = []
         passengerNum = []
 
@@ -118,33 +151,72 @@ class Preprocess:
             passengerGroup.append(int(pG))
             passengerNum.append(int(pN))
 
-        self.df["PassengerGroups"] = pd.Series(passengerGroup).astype('Int64')
-        self.df["PassengerNums"] = pd.Series(passengerNum).astype('Int64')
-        self.df = self.df.drop("PassengerId", axis = 1)
+        df["PassengerGroups"] = pd.Series(passengerGroup).astype('Int64')
+        df["PassengerNums"] = pd.Series(passengerNum).astype('Int64')
+        df = df.drop("PassengerId", axis = 1)
+        return df
 
-    def splitCabin(self):
-        cabins = self.df['Cabin']
+    @staticmethod
+    def splitCabin(df):
+        cabins = df['Cabin']
         cabinDeck = []
         cabinNumber = []
         cabinSide = []
         for cabin in cabins:
             if not type(cabin) is str:
+                cabinDeck.append(np.nan)
+                cabinNumber.append(np.nan)
+                cabinSide.append(np.nan)
                 continue
             cD, cN, cS = cabin.split('/')
             cabinDeck.append(cD)
             cabinNumber.append(cN)
             cabinSide.append(cS)
 
-        self.df["CabinDeck"] = pd.Series(cabinDeck).astype('string')
-        self.df["CabinNumber"] = pd.Series(cabinNumber).astype('Int64')
-        self.df["CabinSide"] = pd.Series(cabinSide).astype('string')
+        df["CabinDeck"] = pd.Series(cabinDeck).astype('string')
+        df["CabinNumber"] = pd.Series(cabinNumber).astype('Int64')
+        df["CabinSide"] = pd.Series(cabinSide).astype('string')
 
-        self.df = self.df.drop("Cabin", axis = 1)
+        df = df.drop("Cabin", axis = 1)
+        return df
 
-    def convertToNumber(self, convertToNumeric):
+    @staticmethod
+    def splitNameAndAge(df):
+        names = df['Name']
+        ages = df['Age']
+
+        surnames = []
+        for name in names:
+            if not type(name) is str:
+                surnames.append(np.nan)
+                continue
+            surname = name.split(" ")[-1]
+            surnames.append(surname)
+
+        df["Surname"] = pd.Series(surnames).astype('string')
+        ageBuckets = [15, 25, 35, 45, 55, 65, 75, 85, 95]
+        ageGroups = []
+        for age in ages:
+            if not type(age) in [int, float, str]:
+                ageBuckets.append(np.nan)
+                continue
+            count = 0
+            for a in ageBuckets:
+                if age <= a:
+                    ageGroups.append(count)
+                    break
+                count += 1
+        df["AgeGroups"] = pd.Series(ageGroups).astype('Int64')
+        return df
+
+    @staticmethod
+    def convertToNumber(df, convertToNumeric, categoryData):
         for col in convertToNumeric:
-            objects = self.df[col].tolist()
-            categories = {}
+            objects = df[col].tolist()
+            if categoryData.get(col) == None:
+                categories = {}
+            else:
+                categories = categoryData.get(col)
             count = 1
 
             for category in objects:
@@ -152,20 +224,25 @@ class Preprocess:
                     categories[category] = count
                     count += 1
 
+            categoryData[col] = categories
             for i in range(len(objects)):
                 if type(objects[i]) is not str:
                     continue
                 objects[i] = categories[objects[i]]
 
-            self.df[col] = pd.Series(objects).astype('Int64')
-            objects = self.df[[col]]
+            df[col] = pd.Series(objects).astype('Int64')
+            objects = df[[col]]
             objects = objects.fillna(objects.median())
-            self.df[col] = objects
+            df[col] = objects
 
-    def fillMissingValues(self, fillMissing):
+        return df
+
+    @staticmethod
+    def fillMissingValues(df, fillMissing):
         for col in fillMissing:
-            objects = self.df[col].tolist()
-            self.df[col] = pd.Series(objects).astype('Int64')
-            objects = self.df[[col]]
+            objects = df[col].tolist()
+            df[col] = pd.Series(objects).astype('Int64')
+            objects = df[[col]]
             objects = objects.fillna(objects.median())
-            self.df[col] = objects
+            df[col] = objects
+        return df
