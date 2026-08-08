@@ -10,17 +10,16 @@ class MLPerceptron(nn.Module):
         )
         self.activation = nn.ReLU()
         self.dropout = nn.Dropout(
-            p = 0.2
+            p = 0.1
         )
         self.outputLayer = nn.Linear(
             hiddenSize,
             outputSize
         )
-        # self.apply(self._init_weights)
+        self.apply(self._init_weights)
 
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
-            # Xavier Uniform initialization is non-zero and stable for training
             nn.init.kaiming_uniform_(module.weight)
 
             # Optional: Ensure biases are set if they exist
@@ -30,6 +29,6 @@ class MLPerceptron(nn.Module):
     def forward(self, x):
         x = self.hiddenLayer(x)
         x = self.activation(x)
-        # x = self.dropout(x)
+        x = self.dropout(x)
         x = self.outputLayer(x)
         return x.squeeze(-1)

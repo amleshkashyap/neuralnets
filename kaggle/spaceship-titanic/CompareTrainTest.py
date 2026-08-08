@@ -25,7 +25,7 @@ class CompareTrainTest:
             axis = 1,
             inplace = True
         )
-
+        categoryData = {}
         self.df = Preprocess.splitPassengerIds(self.df)
         self.testDf = Preprocess.splitPassengerIds(self.testDf)
         self.df = Preprocess.splitCabin(self.df)
@@ -43,8 +43,8 @@ class CompareTrainTest:
             'Surname',
             'Gender'
         ]
-        self.df = Preprocess.convertToNumber(self.df, convertToNumeric)
-        self.testDf = Preprocess.convertToNumber(self.testDf, convertToNumeric)
+        self.df = Preprocess.convertToNumber(self.df, convertToNumeric, categoryData)
+        self.testDf = Preprocess.convertToNumber(self.testDf, convertToNumeric, categoryData)
         otherColumns = [
             'PassengerGroups',
             'PassengerNums',
@@ -70,16 +70,35 @@ class CompareTrainTest:
             axis = 1,
             inplace = True
         )
+        self.df.drop(
+            'Gender',
+            axis = 1,
+            inplace = True
+        )
+        self.testDf.drop(
+            'Gender',
+            axis = 1,
+            inplace = True
+        )
         print(self.df.columns)
         self.scaler.fit_transform(self.df.values.astype(np.float32))
         self.scaler.transform(self.testDf.values.astype(np.float32))
 
     def compareTrainTest(self):
         allDistances = []
+        labels = []
         for idx, row in self.testDf.iterrows():
             distances = []
             for idx1, row1 in self.df.iterrows():
-                distances.append(round(math.dist(row, row1), 2))
+                distances.append((round(math.dist(row, row1), 2), idx1))
             distances.sort()
-            allDistances.append(distances[0])
+            allDistances.append(distances[0][0])
+            labels.append(self.labels[distances[0][1]])
+        tempDf = pd.DataFrame()
+        # tempDf['PassengerId'] = self.testDf['PassengerId']
+        tempDf['Transported'] = labels
+        tempDf.to_csv(
+            "nearestTrain.csv",
+            index = False
+        )
         print(allDistances)

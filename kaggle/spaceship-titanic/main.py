@@ -22,6 +22,7 @@ from Inference import Inference
 if __name__ == "__main__":
     trainFilePath = ["data", "train.csv"]
     testFilePath = ["data", "test.csv"]
+    bestResPath = "resultsBest.csv"
 
     # scaler to normalize the dataset
     scaler = StandardScaler()
@@ -73,7 +74,7 @@ if __name__ == "__main__":
     # os._exit(0)
 
     # input features
-    INPUT_SIZE = 19
+    INPUT_SIZE = 17
 
     # binary classification has a single valued output
     OUTPUT_SIZE = 1
@@ -124,8 +125,8 @@ if __name__ == "__main__":
 
     trainer.train(EPOCHS)
 
-    inference = Inference(model, criterion)
-    inference.predict(preprocess.getXValidate(), preprocess.getYValidate())
+    inference = Inference(model, criterion, bestResPath)
+    inference.predict(preprocess.getXValidate(), preprocess.getYValidate(), 'validate')
 
 
     preprocessTest = Preprocess(testFilePath, preprocess.getScaler(), categoryData)

@@ -53,15 +53,20 @@ class Preprocess:
         ]
         fillMissing = convertToNumeric + otherColumns
         self.df = Preprocess.fillMissingValues(self.df, fillMissing)
-        # self.df.drop(
-        #     'Gender',
-        #     axis = 1,
-        #     inplace = True
-        # )
+        self.df.drop(
+            'Name',
+            axis = 1,
+            inplace = True
+        )
+        self.df.drop(
+            'Gender',
+            axis = 1,
+            inplace = True
+        )
         print(self.df.columns)
         if mode == 'test':
             self.df["Transported"] = 0
-            self.df.to_csv('testDataConverted.csv', index=False)
+            # self.df.to_csv('testDataConverted.csv', index=False)
             self.labels = self.df["Transported"]
             self.df = self.df.drop("Transported", axis = 1)
             self.xTrain = torch.tensor(
@@ -75,7 +80,7 @@ class Preprocess:
             )   # Shape: (8693, 1)
         else:
             self.labels = self.df["Transported"]
-            self.df.to_csv('trainDataConverted.csv', index=False)
+            # self.df.to_csv('trainDataConverted.csv', index=False)
             self.df = self.df.drop("Transported", axis = 1)
             trainDf, valDf, trainLabel, valLabel = train_test_split(
                 self.df,
