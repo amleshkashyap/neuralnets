@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import torch.nn.functional as functional
 
 class Evaluation:
     def __init__(self, fcnn, dummyPredictor, interpolationPredictor, hwesPredictor, criterion):
@@ -33,4 +34,33 @@ class Evaluation:
         plt.plot(self.hwesPredictor(XTest).tolist(), label = 'HWES Predicted')
         plt.legend()
         plt.savefig("evaluateOnTest.png")
+        plt.show()
+
+    def checkStdDev(self, XTest, YTest):
+        length = len(YTest)
+        fcnnAbsDev = (self.fcnn(XTest) - YTest).abs_()
+        hwesAbsDev = (self.hwesPredictor(XTest) - YTest).abs_()
+        diffPos = functional.relu(hwesAbsDev - fcnnAbsDev).reshape(length).tolist()
+        diffMin = (-functional.relu(hwesAbsDev - fcnnAbsDev)).reshape(length).tolist()
+        plt.title("FCNN vs HWES Predictor Comparison")
+        plt.hlines(
+            0,
+            xmin = 0,
+            xmax = length,
+            linestyle = 'dashed',
+        )
+        plt.bar(
+            list(range(length)),
+            diffPos,
+            color = 'g',
+            label = 'FCNN Wins'
+        )
+        plt.bar(
+            list(range(length)),
+            diffMin,
+            color = 'r',
+            label = 'HWES Wins'
+        )
+        plt.legend()
+        plt.savefig("checkStdDev.png")
         plt.show()

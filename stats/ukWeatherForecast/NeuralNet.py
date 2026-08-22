@@ -30,15 +30,17 @@ class NeuralNet(nn.Module):
             kernel_size = self.conv2Kernel,
             padding = self.conv2Kernel - 1
         )
+        # extract latent features from the prepared data using convolutional networks
         self.featureTensor = self.featureStack(torch.Tensor([[0] * inputSize]))
+        # basic FFN/MLP
         self.linear1 = nn.Linear(self.featureTensor.size()[1], hidden1Size)
         self.linear2 = nn.Linear(hidden1Size, hidden2Size)
         self.linear3 = nn.Linear(hidden2Size, outputSize)
 
     def featureStack(self, x):
         x = x.unsqueeze(1)
-        x = nn.functional.relu(self.conv1(x))
-        x = nn.functional.relu(self.conv2(x))
+        x = nn.functional.relu(self.pool(self.conv1(x)))
+        x = nn.functional.relu(self.pool(self.conv2(x)))
         x = x.flatten(start_dim = 1)
         return x
 
@@ -48,7 +50,7 @@ class NeuralNet(nn.Module):
             p = self.dropout
         )
         x = nn.functional.relu(self.linear2(x))
-        return self.linear3(x)
+        return self.linear3(x).squeeze(-1)
 
     def forward(self,x):
         x = self.featureStack(x)

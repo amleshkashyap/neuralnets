@@ -13,8 +13,8 @@ class SARIMA(nn.Module):
                 order = (1, 1, 1),
                 seasonal_order = (1, 1, 1, 12)
             )
-            results = model.fit()
+            results = model.fit(disp = 0)
             lastValues.append(results.forecast()[0])
             counter += 1
             print(f'DEBUG: SARIMA calculation {counter} / {len(l)}')
-        return torch.tensor(data = lastValues)
+        return torch.tensor(data = lastValues).squeeze(-1)

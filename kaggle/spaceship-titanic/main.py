@@ -37,6 +37,10 @@ if __name__ == "__main__":
     preprocess.loadData()
     dataloader = preprocess.getData()
     categoryData = preprocess.getCategoryData()
+    XValidate = preprocess.getXValidate()
+    YValidate = preprocess.getYValidate()
+    XTest = preprocess.getXTest()
+    YTest = preprocess.getYTest()
 
     trainDf = preprocess.getDf()
     trainLabels = preprocess.getLabels().flatten().tolist()
@@ -123,10 +127,11 @@ if __name__ == "__main__":
         optimizer
     )
 
-    trainer.train(EPOCHS)
+    trainer.train(XValidate, YValidate, EPOCHS)
+    bestModel = trainer.loadBestModel()
 
-    inference = Inference(model, criterion, bestResPath)
-    inference.predict(preprocess.getXValidate(), preprocess.getYValidate(), 'validate')
+    inference = Inference(bestModel, criterion, bestResPath)
+    inference.predict(preprocess.getXTest(), preprocess.getYTest(), 'validate')
 
 
     preprocessTest = Preprocess(testFilePath, preprocess.getScaler(), categoryData)

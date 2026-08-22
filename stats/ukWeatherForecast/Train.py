@@ -1,5 +1,7 @@
 import copy
 import sys
+import matplotlib.pyplot as plt
+import torch
 
 
 class Train:
@@ -7,12 +9,14 @@ class Train:
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
-        self.bestModel = copy.deepcopy(model)
+        self.modelPath = 'modelTmp.pt'
+        self.trainingLoss = []
+        self.validationLoss = []
+
 
     def train(self, XTrain, XValidate, YTrain, YValidate, epochs = 150):
-        minValLoss = sys.maxsize
-        trainingLoss = []
-        validationLoss = []
+        minValLoss = 1000000000
+        self.model.train()
         for epoch in range(epochs):
             prediction = self.model(XTrain)
             loss = self.criterion(prediction, YTrain)
@@ -21,10 +25,27 @@ class Train:
             self.optimizer.step()
             valPrediction = self.model(XValidate)
             valLoss = self.criterion(valPrediction, YValidate)
-            trainingLoss.append(loss.item())
-            validationLoss.append(valLoss.item())
+            self.trainingLoss.append(loss.item())
+            self.validationLoss.append(valLoss.item())
             if valLoss.item() < minValLoss:
-                self.bestModel = copy.deepcopy(self.model)
+                self.makeCopy()
                 minValLoss = valLoss.item()
             if epoch % 10 == 0:
                 print(f'epoch {epoch}: train - {round(loss.item(), 4)}, validation - {round(valLoss.item(), 4)}')
+
+    def makeCopy(self):
+        torch.save(self.model, self.modelPath)
+
+    def loadBestModel(self):
+        return torch.load(
+            self.modelPath,
+            weights_only = False
+        )
+
+    def plotTrainingProgress(self):
+        plt.title("Training Progress")
+        plt.plot(self.trainingLoss, label = "Training Loss")
+        plt.plot(self.validationLoss, label = "Validation Loss")
+        plt.legend()
+        plt.savefig("trainingProgress.png")
+        plt.show()

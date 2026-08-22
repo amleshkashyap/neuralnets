@@ -9,11 +9,15 @@ class MLPerceptron(nn.Module):
             hiddenSize
         )
         self.activation = nn.ReLU()
+        self.hidden2 = nn.Linear(
+            hiddenSize,
+            40
+        )
         self.dropout = nn.Dropout(
             p = 0.1
         )
         self.outputLayer = nn.Linear(
-            hiddenSize,
+            40,
             outputSize
         )
         self.apply(self._init_weights)
@@ -28,6 +32,9 @@ class MLPerceptron(nn.Module):
 
     def forward(self, x):
         x = self.hiddenLayer(x)
+        x = self.activation(x)
+        x = self.dropout(x)
+        x = self.hidden2(x)
         x = self.activation(x)
         x = self.dropout(x)
         x = self.outputLayer(x)

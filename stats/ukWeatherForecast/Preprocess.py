@@ -14,6 +14,24 @@ class Preprocess:
         self.YValidate = []
         self.YTest = []
 
+    def getXTrain(self):
+        return self.XTrain
+
+    def getXValidate(self):
+        return self.XValidate
+
+    def getXTest(self):
+        return self.XTest
+
+    def getYTrain(self):
+        return self.YTrain
+
+    def getYValidate(self):
+        return self.YValidate
+
+    def getYTest(self):
+        return self.YTest
+
     def rawTimeSeries(self):
         dirPath = os.path.dirname(os.path.realpath(__file__))
         df = pd.read_csv(f'{dirPath}/data/MET_Office_Weather_Data.csv')
@@ -48,9 +66,9 @@ class Preprocess:
     def slidingWindow(self, windowLen):
         X = []
         Y = []
-        for i in range(windowLen + 1, len(self.data)):
+        for i in range(windowLen + 1, len(self.data) + 1):
             X.append(self.data[i - (windowLen + 1): i - 1])
-            Y.append([self.data[i]])
+            Y.append([self.data[i - 1]])
         return X, Y
 
     def prepareData(self, windowLen, testLength):
@@ -67,9 +85,9 @@ class Preprocess:
         self.XTrain = torch.tensor(data = self.XTrain)
         self.XValidate = torch.tensor(data = self.XValidate)
         self.XTest = torch.tensor(data = self.XTest)
-        self.YTrain = torch.tensor(data = self.YTrain)
-        self.YValidate = torch.tensor(data = self.YValidate)
-        self.YTest = torch.tensor(data = self.YTest)
+        self.YTrain = torch.tensor(data = self.YTrain).squeeze(-1)
+        self.YValidate = torch.tensor(data = self.YValidate).squeeze(-1)
+        self.YTest = torch.tensor(data = self.YTest).squeeze(-1)
 
 if __name__ == '__main__':
     preprocess = Preprocess()

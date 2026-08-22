@@ -46,3 +46,4 @@ if __name__ == "__main__":
     evaluator.compareModels(XTest, YTest)
     evaluator.checkFCNNOnTraining(XTrain, YTrain)
     evaluator.evaluateOnTest(XTest, YTest)
+    evaluator.checkStdDev(XTest, YTest)

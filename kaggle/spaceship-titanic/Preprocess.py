@@ -15,10 +15,12 @@ class Preprocess:
         self.scaler = scaler
         self.df = None
         self.labels = None
-        self.xTrain = None
-        self.yTrain = None
-        self.xValidate = None
-        self.yValidate = None
+        self.XTrain = []
+        self.YTrain = []
+        self.XValidate = []
+        self.YValidate = []
+        self.XTest = []
+        self.YTest = []
         self.dataloader = None
         self.categoryData = categoryData
 
@@ -69,12 +71,12 @@ class Preprocess:
             # self.df.to_csv('testDataConverted.csv', index=False)
             self.labels = self.df["Transported"]
             self.df = self.df.drop("Transported", axis = 1)
-            self.xTrain = torch.tensor(
+            self.XTrain = torch.tensor(
                 self.scaler.transform(self.df.values.astype(np.float32)),
                 dtype = torch.float32
             ).unsqueeze(1)  # Shape: (8693 x 1 x 15)
 
-            self.yTrain = torch.tensor(
+            self.YTrain = torch.tensor(
                 self.labels.values,
                 dtype = torch.float32
             )   # Shape: (8693, 1)
@@ -88,30 +90,46 @@ class Preprocess:
                 test_size = TRAIN_TEST_SPLIT,
                 random_state = 42
             )
-            self.xTrain = torch.tensor(
+            valDf, testDf, valLabel, testLabel = train_test_split(
+                valDf,
+                valLabel,
+                test_size = 0.5,
+                random_state = 42
+            )
+
+            self.XTrain = torch.tensor(
                 self.scaler.fit_transform(trainDf.values.astype(np.float32)),
                 dtype = torch.float32
             ).unsqueeze(1)
 
-            self.xValidate = torch.tensor(
+            self.XValidate = torch.tensor(
                 self.scaler.transform(valDf.values.astype(np.float32)),
                 dtype = torch.float32
             ).unsqueeze(1)
 
-            self.yTrain = torch.tensor(
+            self.XTest = torch.tensor(
+                self.scaler.transform(testDf.values.astype(np.float32)),
+                dtype = torch.float32
+            ).unsqueeze(1)
+
+            self.YTrain = torch.tensor(
                 trainLabel.values,
                 dtype = torch.float32
             ).unsqueeze(1)
-            print(self.xTrain.shape, self.yTrain.shape)
 
-            self.yValidate = torch.tensor(
+            self.YValidate = torch.tensor(
                 valLabel.values,
+                dtype = torch.float32
+            ).unsqueeze(1)
+
+            self.YTest = torch.tensor(
+                testLabel.values,
                 dtype = torch.float32
             ).unsqueeze(1)
 
         self.labels = self.labels.values
         # Create DataLoader for mini-batch training
-        dataset = TensorDataset(self.xTrain, self.yTrain)
+        dataset = TensorDataset(self.XTrain, self.YTrain)
         self.dataloader = DataLoader(
             dataset,
             batch_size = BATCH_SIZE,
@@ -125,16 +143,22 @@ class Preprocess:
         return self.df
 
     def getXTrain(self):
-        return self.xTrain
+        return self.XTrain
 
     def getXValidate(self):
-        return self.xValidate
+        return self.XValidate
 
     def getYTrain(self):
-        return self.yTrain
+        return self.YTrain
 
     def getYValidate(self):
-        return self.yValidate
+        return self.YValidate
+
+    def getXTest(self):
+        return self.XTest
+
+    def getYTest(self):
+        return self.YTest
 
     def getLabels(self):
         return self.labels
