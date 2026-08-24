@@ -29,7 +29,7 @@ class Inference:
         # don't track gradients
         with torch.no_grad():
             # Forward pass through the model to make predictions (logits)
-            rawLogits = self.model(xTensor)
+            rawLogits, _ = self.model(xTensor)
 
             # validation loss using the selected loss function
             valLoss = self.criterion(

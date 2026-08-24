@@ -14,15 +14,14 @@ class GRU(nn.Module):
         )
         self.fc = nn.Linear(self.hiddenSize, outputSize)
 
-    def forward(self, x):
-        h0 = torch.zeros(
-            self.hiddenLayers,
-            x.size(0),
-            self.hiddenSize
-        )
+    def forward(self, x, h = None):
+        # h0 = torch.zeros(
+        #     self.hiddenLayers,
+        #     x.size(0),
+        #     self.hiddenSize
+        # )
 
-        output, _ = self.gru(x, h0)
-        output = output[:, -1, :]
-        output = self.fc(output)
-
-        return output
+        output, _ = self.gru(x, h)
+        lastHiddenStates = output[:, -1, :]
+        output = self.fc(lastHiddenStates)
+        return output, lastHiddenStates

@@ -17,7 +17,7 @@ class Train:
             epochLoss = 0.0
             for batchX, batchY in self.dataloader:
                 # run the forward method to do the prediction
-                y = self.model(batchX)
+                y, _ = self.model(batchX)
 
                 # compute the loss values
                 loss = self.criterion(y, batchY)
@@ -30,7 +30,7 @@ class Train:
                 # update the weights using the above gradients and optimizer
                 self.optimizer.step()
                 epochLoss += loss.item() * batchX.size(0)
-            valPrediction = self.model(XValidate)
+            valPrediction, _ = self.model(XValidate)
             valLoss = self.criterion(valPrediction, YValidate)
             totalEpochLoss = epochLoss / len(self.dataloader.dataset)
             self.trainingLoss.append(totalEpochLoss)

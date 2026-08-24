@@ -90,12 +90,12 @@ if __name__ == "__main__":
     #     HIDDEN_LAYERS
     # )
 
-    # model = GRU(
-    #     INPUT_SIZE,
-    #     HIDDEN_SIZE,
-    #     OUTPUT_SIZE,
-    #     HIDDEN_LAYERS
-    # )
+    model = GRU(
+        INPUT_SIZE,
+        HIDDEN_SIZE,
+        OUTPUT_SIZE,
+        HIDDEN_LAYERS
+    )
 
     # model = LSTM(
     #     INPUT_SIZE,
@@ -104,12 +104,12 @@ if __name__ == "__main__":
     #     HIDDEN_LAYERS
     # )
 
-    model = MLPerceptron(
-        INPUT_SIZE,
-        HIDDEN_SIZE,
-        OUTPUT_SIZE,
-        1
-    )
+    # model = MLPerceptron(
+    #     INPUT_SIZE,
+    #     HIDDEN_SIZE,
+    #     OUTPUT_SIZE,
+    #     1
+    # )
 
     # binary cross entropy
     criterion = nn.BCEWithLogitsLoss()
