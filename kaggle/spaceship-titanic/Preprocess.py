@@ -79,7 +79,7 @@ class Preprocess:
             self.YTrain = torch.tensor(
                 self.labels.values,
                 dtype = torch.float32
-            )   # Shape: (8693, 1)
+            ).unsqueeze(1)   # Shape: (8693, 1)
         else:
             self.labels = self.df["Transported"]
             # self.df.to_csv('trainDataConverted.csv', index=False)

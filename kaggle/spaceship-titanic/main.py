@@ -18,6 +18,14 @@ from Parameters import *
 from CompareTrainTest import *
 
 from Inference import Inference
+from InferenceGP import InferenceGP
+from TrainGP import TrainGP
+
+# input features
+INPUT_SIZE = 17
+
+# binary classification has a single valued output
+OUTPUT_SIZE = 1
 
 if __name__ == "__main__":
     trainFilePath = ["data", "train.csv"]
@@ -77,11 +85,6 @@ if __name__ == "__main__":
 
     # os._exit(0)
 
-    # input features
-    INPUT_SIZE = 17
-
-    # binary classification has a single valued output
-    OUTPUT_SIZE = 1
 
     # model = RecurrentNN(
     #     INPUT_SIZE,
