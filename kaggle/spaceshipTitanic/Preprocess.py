@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 from sklearn.model_selection import train_test_split
-from Parameters import *
+from kaggle.spaceshipTitanic.Parameters import *
 
 class Preprocess:
     def __init__(self, relativePath, scaler, categoryData):
@@ -65,7 +65,6 @@ class Preprocess:
             axis = 1,
             inplace = True
         )
-        print(self.df.columns)
         if mode == 'test':
             self.df["Transported"] = 0
             # self.df.to_csv('testDataConverted.csv', index=False)

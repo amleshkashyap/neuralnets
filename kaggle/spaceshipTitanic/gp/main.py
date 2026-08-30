@@ -1,9 +1,6 @@
 import gpytorch
 from ExactGP import ExactGP
 from sklearn.preprocessing import StandardScaler
-from scipy import stats
-import matplotlib.pyplot as plt
-from CompareTrainTest import *
 from Preprocess import Preprocess
 
 from InferenceGP import InferenceGP
@@ -16,13 +13,11 @@ INPUT_SIZE = 17
 OUTPUT_SIZE = 1
 
 if __name__ == "__main__":
-    trainFilePath = ["data", "train.csv"]
-    testFilePath = ["data", "test.csv"]
-    bestResPath = "resultsBest.csv"
+    trainFilePath = ["..", "data", "train.csv"]
+    testFilePath = ["..", "data", "test.csv"]
+    bestResPath = "../resultsBest.csv"
 
     scaler = StandardScaler()
-
-    compareTrainTest = CompareTrainTest(trainFilePath, testFilePath, scaler)
 
     # preprocess the training dataset and the DataLoader
     preprocess = Preprocess(trainFilePath, scaler, {})
@@ -40,23 +35,6 @@ if __name__ == "__main__":
 
     trainDf = preprocess.getDf()
     trainLabels = preprocess.getLabels().flatten().tolist()
-    idx = 0
-    for col in trainDf.columns:
-        correlation, pValue = stats.pointbiserialr(trainDf[col], pd.Series(trainLabels))
-        if pValue < 0.05:
-            print(col, "\t\t", round(correlation, 2))
-        else:
-            print(col, "\t\t", "Irrelevant")
-        dummyMatrix = np.zeros((len(trainDf), len(trainDf.columns)))
-        dummyMatrix[:, idx] = trainDf[col].values
-        transformedMatrix = scaler.transform(dummyMatrix)
-        toPlot = transformedMatrix[:, idx]
-        plt.plot(toPlot)
-        plt.xlabel("Datapoint")
-        plt.ylabel(col)
-        plt.grid(True)
-        # plt.show()
-        idx += 1
 
     likelihood = gpytorch.likelihoods.GaussianLikelihood()
     model = ExactGP(

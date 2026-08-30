@@ -1,5 +1,8 @@
-from Preprocess import *
+from kaggle.spaceshipTitanic.Preprocess import Preprocess, TRAIN_TEST_SPLIT
 import math
+import pandas as pd
+import os
+import numpy as np
 
 class CompareTrainTest:
     def __init__(self, trainPath, testPath, scaler):
