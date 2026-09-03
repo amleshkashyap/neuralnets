@@ -33,7 +33,8 @@ class Train:
             if valLoss.item() < minValLoss:
                 self.makeCopy()
                 minValLoss = valLoss.item()
-            print(f'Epoch {epoch}/{epochs}: train - {round(loss.item(), 4)}, val loss - {round(valLoss.item(), 4)}')
+            if epoch % 20 == 0:
+                print(f'Epoch {epoch}/{epochs}: train - {round(loss.item(), 4)}, val loss - {round(valLoss.item(), 4)}')
 
     def makeCopy(self):
         torch.save(
@@ -49,5 +50,5 @@ class Train:
         plt.ylabel('Loss')
         plt.xlabel('Epoch')
         plt.legend()
-        plt.savefig('trainingProgress.png')
-        plt.show()
+        # plt.savefig('trainingProgress.png')
+        # plt.show()

@@ -4,8 +4,11 @@ class ExactGP(gpytorch.models.ExactGP):
     def __init__(self, XTrain, YTrain, likelihood):
         super(ExactGP, self).__init__(XTrain, YTrain, likelihood)
         self.mean_module = gpytorch.means.ConstantMean()
-        self.covar_module = gpytorch.kernels.ScaleKernel(
-            gpytorch.kernels.RBFKernel(ard_num_dims = 17)
+        # self.covar_module = gpytorch.kernels.ScaleKernel(
+        #     gpytorch.kernels.RBFKernel(ard_num_dims = 17)
+        # )
+        self.covar_module =  gpytorch.kernels.ScaleKernel(
+            gpytorch.kernels.PolynomialKernel(ard_num_dims = 17, power = 2)
         )
         self.likelihood = likelihood
 

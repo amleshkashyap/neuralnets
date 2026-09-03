@@ -10,6 +10,10 @@ class Evaluation:
         )
         self.model = model
         self.criterion = criterion
+        self.results = None
+
+    def getResults(self):
+        return self.results
 
     def evaluate(self, XTest, YTest, mode = 'train'):
         self.model.eval()
@@ -29,8 +33,8 @@ class Evaluation:
                 label = 'Real'
             )
             plt.legend()
-            plt.savefig('evaluation.png')
-            plt.show()
+            # plt.savefig('evaluation.png')
+            # plt.show()
         else:
             finalDf = pl.DataFrame()
             finalDf = finalDf.with_columns(
@@ -40,4 +44,5 @@ class Evaluation:
                     dtype = pl.Float32
                 )
             )
-            finalDf.write_csv('resultsTCN.csv')
+            # finalDf.write_csv('resultsTCN.csv')
+            self.results = finalDf

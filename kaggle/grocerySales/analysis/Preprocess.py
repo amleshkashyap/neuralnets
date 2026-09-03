@@ -20,7 +20,6 @@ class Preprocess:
         self.YValidate = None
         self.YTest = None
         self.categoryData = categoryData
-        self.ids = None
 
     def reset(self):
         self.data = None
@@ -56,29 +55,22 @@ class Preprocess:
     def getScaler(self):
         return self.scaler
 
-    def getIds(self):
-        return self.ids
-
-    def slidingWindow(self, ):
+    def slidingWindow(self, totalLength):
         X = []
         Y = []
 
         # for i in range(self.features + 1, len(self.data) + 1):
-        for i in range(len(self.data)):
-            X.append(self.data[i])
-            Y.append(self.sales[i])
+        for i in range(self.features + 1, totalLength + 1):
+            X.append(self.data[i - (self.features + 1): i - 1])
+            Y.append(self.sales[i - 1])
 
         return X, Y
 
-    def loadMergedData(self, data):
-        # self.data = pl.read_csv(self.filePath)
-        self.data = data
+    def loadMergedData(self):
+        self.data = pl.read_csv(self.filePath)
         self.data.sort('date')
-        if self.mode == 'test':
-            self.ids = self.data['id'].to_list()
         self.data.drop_in_place('id')
-        # self.data.drop_in_place('transactions')
-        self.data.drop_in_place('store_nbr')
+        self.data.drop_in_place('transactions')
         self.data.drop_in_place('holiday_description')
         if self.mode == 'train':
             self.sales = self.data.get_column('sales')
@@ -101,15 +93,17 @@ class Preprocess:
         self.data = Preprocess.fillMissingValues(self.data, fillMissingCols)
 
 
-    def prepareData(self, data, testLength, trainRatio = 0.7):
+    def prepareData(self, totalLength, testLength, trainRatio = 0.7):
         self.reset()
-        self.loadMergedData(data)
+        self.loadMergedData()
         self.cleanupMergedData()
         print("\nCleanup Completed")
-        X, Y = self.slidingWindow()
+        X, Y = self.slidingWindow(totalLength)
         print("\nSliding Window Completed")
         if self.mode == 'train':
             trainLength = round(len(self.data) * trainRatio)
+            trainLength = round(totalLength * trainRatio)
+
 
             self.XTrain, self.YTrain, self.XTest, self.YTest = \
                 X[0:-testLength], Y[0:-testLength], X[-testLength:], Y[-testLength:]
@@ -165,7 +159,15 @@ class Preprocess:
         return data
 
     @staticmethod
-    def convertToNumber(df, convertToNumeric, categoryData):
+    def groupDfByColumn(df: pl.DataFrame, columnName: str, value):
+        return df.filter(pl.col(columnName) == value)
+
+    @staticmethod
+    def writeDfToCsv(df: pl.DataFrame, fileName: str):
+        df.write_csv(fileName)
+
+    @staticmethod
+    def convertToNumber(df: pl.DataFrame, convertToNumeric: list[str], categoryData: dict):
         for col in convertToNumeric:
             objects = df[col].to_list()
             if categoryData.get(col) == None:

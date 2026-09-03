@@ -4,6 +4,10 @@ import os
 from concurrent.futures import ProcessPoolExecutor
 import polars as pl
 from datetime import datetime
+from pathlib import Path
+
+from Visualize import Visualize
+
 
 class MergeData:
     def __init__(self):
@@ -122,21 +126,77 @@ class MergeData:
     def splitByStoreNbr(self):
         trainDf = pl.read_csv(f'{self.basePath}/trainMerged.csv')
         trainDf = trainDf.sort('date')
-        print(trainDf['date'][:30])
-        trainStoreNumbers = trainDf["date"].unique().to_list()
+        trainStoreNumbers = trainDf["store_nbr"].unique().to_list()
+        for storeNbr in trainStoreNumbers:
+            values = self.fetchByColumn(trainDf, 'store_nbr', storeNbr)
+            self.writeToCsv(values, f'data/train/{storeNbr}.csv')
+
         testDf = pl.read_csv(f'{self.basePath}/testMerged.csv')
         testDf = testDf.sort('date')
-        testStoreNumbers = testDf["date"].unique().to_list()
-        # trainStoreNumbers.sort(
-        #     key = lambda x: datetime.strptime(x, "%Y-%m-%d")
-        # )
-        # testStoreNumbers.sort(
-        #     key = lambda x: datetime.strptime(x, "%Y-%m-%d")
-        # )
-        print(trainStoreNumbers)
-        print(testStoreNumbers)
+        testStoreNumbers = testDf["store_nbr"].unique().to_list()
+        for storeNbr in testStoreNumbers:
+            values = self.fetchByColumn(testDf, 'store_nbr', storeNbr)
+            self.writeToCsv(values, f'data/test/{storeNbr}.csv')
+
+    def fetchByColumn(self, df: pl.DataFrame, col, value):
+        return df.filter(pl.col(col) == value)
+
+    def writeToCsv(self, df: pl.DataFrame, filePath):
+        df.write_csv(filePath)
+
+    def generateTrainMetrics(self):
+        pass
+
 
 if __name__ == "__main__":
     p = MergeData()
     # p.mergeData()
-    p.splitByStoreNbr()
+    # p.splitByStoreNbr()
+    basePath = os.getcwd()
+    trainPath = Path(f'{basePath}/../data/train/')
+    testPath = Path(f'{basePath}/../data/test')
+
+    vis = Visualize()
+
+    families = []
+    for file in trainPath.glob("*.csv"):
+        df = pl.read_csv(file)
+        cols = df.columns
+        print(file.name, ": ", df.height)
+        for col in cols:
+            # if col in ['id', 'store_nbr']:
+            #     continue
+            if col not in ['family']:
+                continue
+            f = df[col].unique().to_list()
+            for i in f:
+                if i in families:
+                    continue
+                families.append(i)
+            values = df.select(pl.col(col).value_counts(sort = True))
+            # print(file.name, ": ", col, values)
+        # vis.plotBasicHistogram(df["sales"].to_list(), 30)
+        # vis.plotBasicHistogram(df["family"].to_list(), 30)
+    print(len(families))
+    print(families)
+
+    for file in testPath.glob("*.csv"):
+        df = pl.read_csv(file)
+        cols = df.columns
+        print(file.name, ": ", df.height)
+        for col in cols:
+            # if col in ['id', 'store_nbr']:
+            #     continue
+            if col not in ['date', 'family']:
+                continue
+            f = df[col].unique().to_list()
+            for i in f:
+                if i in families:
+                    continue
+                families.append(i)
+            values = df.select(pl.col(col).value_counts(sort = True))
+            print(file.name, ": ", col, values)
+        # vis.plotBasicHistogram(df["sales"].to_list(), 30)
+        # vis.plotBasicHistogram(df["family"].to_list(), 30)
+    print(len(families))
+    print(families)
