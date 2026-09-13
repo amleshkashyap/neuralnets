@@ -1,5 +1,5 @@
 import torch.nn as nn
-from TemporalConvolutionNetwork import TemporalConvolutionNetwork
+from models.tcn1.TemporalConvolutionNetwork import TemporalConvolutionNetwork
 
 class TCN(nn.Module):
     def __init__(self, inputSize, outputSize, channels, kernelSize, dropout):

@@ -1,5 +1,5 @@
 import torch.nn as nn
-from TemporalCasualLayer import TemporalCasualLayer
+from models.tcn1.TemporalCasualLayer import TemporalCasualLayer
 
 class TemporalConvolutionNetwork(nn.Module):
     def __init__(self, inputSize, channels, kernelSize = 2, dropout = 0.2):

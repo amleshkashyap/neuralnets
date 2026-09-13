@@ -70,16 +70,22 @@ class Preprocess:
 
         return X, Y
 
-    def loadMergedData(self, data):
+    def loadMergedData(self, data: pl.DataFrame):
         # self.data = pl.read_csv(self.filePath)
         self.data = data
         self.data.sort('date')
         if self.mode == 'test':
             self.ids = self.data['id'].to_list()
+        self.data.drop_in_place('date')
         self.data.drop_in_place('id')
-        # self.data.drop_in_place('transactions')
+        self.data.drop_in_place('transactions')
         self.data.drop_in_place('store_nbr')
-        self.data.drop_in_place('holiday_description')
+        # self.data.drop_in_place('holiday_description')
+        self.data.drop_in_place('city')
+        self.data.drop_in_place('family')
+        self.data.drop_in_place('state')
+        self.data.drop_in_place('cluster')
+        self.data.drop_in_place('store_type')
         if self.mode == 'train':
             self.sales = self.data.get_column('sales')
             self.data.drop_in_place('sales')
@@ -88,12 +94,12 @@ class Preprocess:
 
     def cleanupMergedData(self):
         convertToNumber = [
-            'date',
-            'family',
-            # 'holiday_description',
-            'city',
-            'state',
-            'store_type',
+            # 'date',
+            # 'family',
+            'holiday_description',
+            # 'city',
+            # 'state',
+            # 'store_type',
             'holiday_type'
         ]
         self.data = Preprocess.convertToNumber(self.data, convertToNumber, self.categoryData)
@@ -105,6 +111,7 @@ class Preprocess:
         self.reset()
         self.loadMergedData(data)
         self.cleanupMergedData()
+        print(self.data.columns)
         print("\nCleanup Completed")
         X, Y = self.slidingWindow()
         print("\nSliding Window Completed")

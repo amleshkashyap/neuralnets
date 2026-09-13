@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from Dummy import Dummy
 import torch
-import polars as pl
 
 class Evaluation:
     def __init__(self, model, modelPath, criterion):
@@ -36,13 +35,4 @@ class Evaluation:
             # plt.savefig('evaluation.png')
             # plt.show()
         else:
-            finalDf = pl.DataFrame()
-            finalDf = finalDf.with_columns(
-                pl.Series(
-                    name = 'sales',
-                    values = list(tcnPrediction),
-                    dtype = pl.Float32
-                )
-            )
-            # finalDf.write_csv('resultsTCN.csv')
-            self.results = finalDf
+            self.results = tcnPrediction.detach().numpy()

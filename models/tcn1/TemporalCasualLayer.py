@@ -1,6 +1,6 @@
 import torch.nn as nn
 from torch.nn.utils.parametrizations import weight_norm
-from Crop import Crop
+from models.Crop import Crop
 
 class TemporalCasualLayer(nn.Module):
     def __init__(self, inputSize, outputSize, kernelSize, stride, dilation, layerNum, dropout = 0.2):
@@ -14,7 +14,8 @@ class TemporalCasualLayer(nn.Module):
             'kernel_size': kernelSize,
             'stride': stride,
             'padding': padding,
-            'dilation': self.dilation
+            'dilation': self.dilation,
+            'bias': True
         }
         self.conv1 = weight_norm(nn.Conv1d(
             self.inputSize,
