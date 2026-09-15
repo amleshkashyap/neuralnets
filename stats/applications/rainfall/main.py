@@ -6,21 +6,21 @@ from Preprocess import Preprocess
 from Train import Train
 
 params = nni.get_next_parameter()
-# tclNum = params['tclNum']
-# tclChannelSize = params['tclChannelSize']
-# kernelSize = params['kernelSize']
-# dropout = params['dropout']
-# slices = params['slices']
-# useBias = params['useBias']
-# lr = params['lr']
+tclNum = params['tclNum']
+tclChannelSize = params['tclChannelSize']
+kernelSize = params['kernelSize']
+dropout = params['dropout']
+slices = params['slices']
+useBias = params['useBias']
+lr = params['lr']
 
-tclNum = 2
-tclChannelSize = 32
-kernelSize = 7
-dropout = 0.1
-slices = 1
-useBias = True
-lr = 0.005
+# tclNum = 2
+# tclChannelSize = 32
+# kernelSize = 7
+# dropout = 0.1
+# slices = 1
+# useBias = True
+# lr = 0.005
 
 channelSizes = [tclChannelSize] * tclNum
 

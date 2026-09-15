@@ -1,35 +1,81 @@
-from nni.experiment import Experiment
 import time
-from pathlib import Path
+from nni.experiment import Experiment
+
+fastChoices = {
+    '_type': 'choice',
+    '_value': [3, 5, 7, 9]
+}
+slowChoices = {
+    '_type': 'choice',
+    '_value': [14, 20, 40]
+}
+lengthChoices = {
+    '_type': 'choice',
+    '_value': [5, 10, 20]
+}
+
+indicatorChoices = [
+    {
+        '_name': 'ao',
+        'fast': fastChoices,
+        'slow': slowChoices
+    },
+    {
+        '_name': 'apo',
+        'fast': fastChoices,
+        'slow': slowChoices
+    },
+    {
+        '_name': 'tsi',
+        'fast': fastChoices,
+        'slow': slowChoices
+    },
+    {
+        '_name': 'cci',
+        'length': lengthChoices
+    },
+    {
+        '_name': 'cmo',
+        'length': lengthChoices
+    },
+    {
+        '_name': 'mom',
+        'length': lengthChoices
+    },
+    {
+        '_name': 'rsi',
+        'length': lengthChoices
+    }
+]
 
 searchSpace = {
-    'tclNum': {
-        '_type': 'choice',
-        '_value': [1, 2, 3]
-    },
-    'tclChannelSize': {
-        '_type': 'choice',
-        '_value': [8, 16, 24, 32]
-    },
-    'kernelSize': {
-        '_type': 'choice',
-        '_value': [3, 5, 7]
-    },
-    'dropout': {
-        '_type': 'choice',
-        '_value': [0, 0.1, 0.2, 0.4]
-    },
-    'slices': {
-        '_type': 'choice',
-        '_value': [1, 2]
-    },
-    'useBias': {
-        '_type': 'choice',
-        '_value': [True, False]
-    },
     'lr': {
         '_type': 'choice',
-        '_value': [0.01, 0.005, 0.0001]
+        '_value': [0.01, 0.005, 0.001, 0.0005]
+    },
+    'rnnType': {
+        '_type': 'choice',
+        '_value': ['rnn', 'gru']
+    },
+    'rnnHiddenSize': {
+        '_type': 'choice',
+        '_value': [8, 16, 24]
+    },
+    'indicatorHiddenSize': {
+        '_type': 'choice',
+        '_value': [1, 2, 4]
+    },
+    'decisionSize': {
+        '_type': 'choice',
+        '_value': [2, 4, 8, 16]
+    },
+    'ind1': {
+        '_type': 'choice',
+        '_value': indicatorChoices
+    },
+    'ind2': {
+        '_type': 'choice',
+        '_value': indicatorChoices
     }
 }
 
@@ -41,7 +87,7 @@ if __name__ == "__main__":
     search.config.max_trial_number = maxTrials
     search.config.search_space = searchSpace
     search.config.trial_command = 'python main.py'
-    search.config.trial_code_directory = Path(__file__).parent
+    search.config.trial_code_directory = '.'
 
     search.config.tuner.name = 'Evolution'
     search.config.tuner.class_args['optimize_mode'] = 'minimize'
