@@ -17,7 +17,7 @@ class Train:
         self.validationLoss = []
         self.modelPath = modelPath
 
-    def train(self, XTrain, XValidate, YTrain, YValidate, epochs):
+    def train(self, XTrain, XValidate, YTrain, YValidate, epochs, storeFamily):
         minValLoss = 1000000000
         self.model.train()
         for epoch in range(epochs):
@@ -34,7 +34,7 @@ class Train:
                 self.makeCopy()
                 minValLoss = valLoss.item()
             if epoch % 20 == 0:
-                print(f'Epoch {epoch}/{epochs}: train - {round(loss.item(), 4)}, val loss - {round(valLoss.item(), 4)}')
+                print(f'Epoch For {storeFamily} {epoch}/{epochs}: train - {round(loss.item(), 4)}, val loss - {round(valLoss.item(), 4)}')
 
     def makeCopy(self):
         torch.save(

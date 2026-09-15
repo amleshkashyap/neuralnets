@@ -10,7 +10,7 @@ class Evaluate:
         self.model.eval()
         with torch.no_grad():
             trades = self.model(closePricesTest, indicatorsTest)
-            trades = torch.round(trades * 100) / 100
+            trades = torch.round(trades) # * 100) / 100
             absReturn = torch.mul(trades, priceDiffTest)
             cumSumReturn = [0] + torch.cumsum(absReturn, dim = 0).view(-1).tolist()
             # buy and hold strategy
