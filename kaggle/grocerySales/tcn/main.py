@@ -1,5 +1,6 @@
 import os
 import random
+import queue
 import numpy as np
 import torch
 from Evaluation import Evaluation
@@ -10,6 +11,7 @@ from RMSLELoss import RMSLELoss
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import polars as pl
 from kaggle.grocerySales.ReturnableThread import ReturnableThread
+import time
 
 seed = 1
 random.seed(seed)
@@ -59,7 +61,7 @@ def runFamilyModel(familyTrainDf, familyTestDf, storeFamily):
     criterion = RMSLELoss()
     print("\nLoaded Model.")
 
-    modelPath = f'tmpModels/modelTmp_{storeFamily}.pt'
+    modelPath = f'{os.getcwd()}\\tmp\\model_{storeFamily}.pt'
 
     trainer = Train(model, criterion, modelPath)
     print(f"\nStarting Training: {storeFamily}")
@@ -96,32 +98,42 @@ def runFamilyModel(familyTrainDf, familyTestDf, storeFamily):
 
 
 if __name__ == "__main__":
-    # stores = np.arange(1, 55)
-    stores = np.arange(1, 5)
-    # families = ['GROCERY I', 'HARDWARE', 'HOME AND KITCHEN II', 'LINGERIE', 'HOME APPLIANCES', 'CLEANING', 'PERSONAL CARE', 'MAGAZINES', 'DELI', 'PET SUPPLIES', 'SEAFOOD', 'FROZEN FOODS', 'PLAYERS AND ELECTRONICS', 'BEVERAGES', 'BOOKS', 'PREPARED FOODS', 'BABY CARE', 'CELEBRATION', 'GROCERY II', 'LAWN AND GARDEN', 'DAIRY', 'EGGS', 'BEAUTY', 'AUTOMOTIVE', 'HOME AND KITCHEN I', 'SCHOOL AND OFFICE SUPPLIES', 'LADIESWEAR', 'BREAD/BAKERY', 'PRODUCE', 'HOME CARE', 'MEATS', 'POULTRY', 'LIQUOR,WINE,BEER']
-    families = ['GROCERY I', 'HARDWARE', 'HOME AND KITCHEN II']
+    stores = np.arange(1, 55)
+    # stores = np.arange(1, 5)
+    families = ['GROCERY I', 'HARDWARE', 'HOME AND KITCHEN II', 'LINGERIE', 'HOME APPLIANCES', 'CLEANING', 'PERSONAL CARE', 'MAGAZINES', 'DELI', 'PET SUPPLIES', 'SEAFOOD', 'FROZEN FOODS', 'PLAYERS AND ELECTRONICS', 'BEVERAGES', 'BOOKS', 'PREPARED FOODS', 'BABY CARE', 'CELEBRATION', 'GROCERY II', 'LAWN AND GARDEN', 'DAIRY', 'EGGS', 'BEAUTY', 'AUTOMOTIVE', 'HOME AND KITCHEN I', 'SCHOOL AND OFFICE SUPPLIES', 'LADIESWEAR', 'BREAD/BAKERY', 'PRODUCE', 'HOME CARE', 'MEATS', 'POULTRY', 'LIQUOR,WINE,BEER']
+    # families = ['GROCERY I', 'HARDWARE', 'HOME AND KITCHEN II']
     finalRes: pl.DataFrame = pl.DataFrame()
     threads = []
+    queue = queue.Queue()
 
+    startTime = time.perf_counter()
     for store in stores:
         storeTrainDf = pl.read_csv(f'{TRAIN_PATH}/{store}.csv')
         storeTestDf = pl.read_csv(f'{TEST_PATH}/{store}.csv')
+        count = 0
         for family in families:
-            storeFamily = f"{store}_{family}"
+            storeFamily = f"{store}_{count}"
+            count += 1
             familyTrainDf = storeTrainDf.filter(pl.col('family') == family)
             familyTestDf = storeTestDf.filter(pl.col('family') == family)
-            t = ReturnableThread(target = runFamilyModel, args = (familyTrainDf, familyTestDf, storeFamily))
+            t = ReturnableThread(
+                target = runFamilyModel,
+                familyTrainDf = familyTrainDf,
+                familyTestDf = familyTestDf,
+                storeFamily = storeFamily,
+                queue = queue)
             threads.append(t)
+            if len(threads) == 10:
+                results = []
+                for t in threads:
+                    t.start()
+                for t in threads:
+                    t.join()
+                    results.append(queue.get())
+                for result in results:
+                    finalRes = pl.concat([finalRes, result])
+                threads = []
 
-    for t in threads:
-        t.start()
-
-    results = [t.join() for t in threads]
-
-    for result in results:
-        if len(finalRes) == 0:
-            finalRes = result
-        else:
-            finalRes = pl.concat([finalRes, result])
-
+    endTime = time.perf_counter()
+    print(f"Time taken: {round(endTime - startTime, 4)} seconds")
     finalRes.write_csv('resultsTCN.csv')

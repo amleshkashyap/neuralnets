@@ -19,6 +19,7 @@ class Train:
 
     def train(self, XTrain, XValidate, YTrain, YValidate, epochs, storeFamily):
         minValLoss = 1000000000
+        stateDict = None
         self.model.train()
         for epoch in range(epochs):
             prediction = self.model(XTrain)
@@ -31,15 +32,16 @@ class Train:
             self.trainingLoss.append(loss.item())
             self.validationLoss.append(valLoss.item())
             if valLoss.item() < minValLoss:
-                self.makeCopy()
+                stateDict = copy.deepcopy(self.model.state_dict())
                 minValLoss = valLoss.item()
             if epoch % 20 == 0:
-                print(f'Epoch For {storeFamily} {epoch}/{epochs}: train - {round(loss.item(), 4)}, val loss - {round(valLoss.item(), 4)}')
+                print(f'Epoch {epoch}/{epochs} For {storeFamily}: train - {round(loss.item(), 4)}, val loss - {round(valLoss.item(), 4)}')
+        self.makeCopy(stateDict)
 
-    def makeCopy(self):
+    def makeCopy(self, stateDict):
         torch.save(
-            self.model.state_dict(),
-            self.modelPath
+            stateDict,
+            f = self.modelPath
         )
 
     def plotTraining(self):

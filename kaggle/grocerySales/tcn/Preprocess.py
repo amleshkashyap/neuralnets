@@ -111,10 +111,7 @@ class Preprocess:
         self.reset()
         self.loadMergedData(data)
         self.cleanupMergedData()
-        print(self.data.columns)
-        print("\nCleanup Completed")
         X, Y = self.slidingWindow()
-        print("\nSliding Window Completed")
         if self.mode == 'train':
             trainLength = round(len(self.data) * trainRatio)
 

@@ -1,16 +1,11 @@
 from threading import Thread
 
 class ReturnableThread(Thread):
-    def __init__(self, target, args=(), kwargs=None):
+    def __init__(self, target, familyTrainDf, familyTestDf, storeFamily, queue):
         super().__init__()
         self.target = target
-        self.args = args
-        self.kwargs = kwargs if kwargs else {}
-        self.result = None
+        self.args = [familyTrainDf, familyTestDf, storeFamily]
+        self.queue = queue
 
     def run(self):
-        self.result = self.target(*self.args, **self.kwargs)
-
-    def join(self, timeout=None):
-        super().join(timeout)
-        return self.result
+        self.queue.put(self.target(*self.args))
